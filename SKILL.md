@@ -1,5 +1,5 @@
 ---
-name: obsidian-vault
+name: obsidian-project-brain
 description: Maintain and retrieve a human-and-agent shared software-development knowledge base in an Obsidian vault. Use for project architecture, codebase maps, technical decisions, dev logs, project todos, priorities, blockers, work progress, codebase relearning, and on-demand daily or weekly reports. Use after significant development work when durable project knowledge or task state changed. This skill does not replace coding, planning, testing, debugging, or review workflows; the repository remains the source of truth for code behavior.
 license: MIT
 compatibility: Requires filesystem read/write access to an Obsidian or Markdown vault. Git and ripgrep are optional but recommended.

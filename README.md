@@ -1,4 +1,4 @@
-# obsidian-vault
+# obsidian-project-brain
 
 A portable Agent Skill for maintaining an Obsidian vault as a **human + coding-agent shared development workspace**.
 
@@ -128,7 +128,7 @@ The skill checks `OBSIDIAN_VAULT` first, then the config file.
 Once this repository is on GitHub, install the same skill into Claude Code, Codex, and Gemini CLI using the open `skills` CLI:
 
 ```bash
-npx skills@latest add YOUR_GITHUB_USERNAME/obsidian-vault \
+npx skills@latest add YOUR_GITHUB_USERNAME/obsidian-project-brain \
   --global \
   --agent claude-code \
   --agent codex \
@@ -140,17 +140,17 @@ Choose **Symlink** when prompted. That keeps one canonical installed copy rather
 The `skills` CLI currently recognizes these global locations:
 
 ```text
-Claude Code: ~/.claude/skills/obsidian-vault
-Codex:       ~/.codex/skills/obsidian-vault
-Gemini CLI:  ~/.gemini/skills/obsidian-vault
+Claude Code: ~/.claude/skills/obsidian-project-brain
+Codex:       ~/.codex/skills/obsidian-project-brain
+Gemini CLI:  ~/.gemini/skills/obsidian-project-brain
 ```
 
 Verify after installation:
 
 ```bash
-ls -la ~/.claude/skills/obsidian-vault
-ls -la ~/.codex/skills/obsidian-vault
-ls -la ~/.gemini/skills/obsidian-vault
+ls -la ~/.claude/skills/obsidian-project-brain
+ls -la ~/.codex/skills/obsidian-project-brain
+ls -la ~/.gemini/skills/obsidian-project-brain
 ```
 
 If an installer regression leaves the canonical skill installed but misses one agent-specific symlink, create only the missing symlink manually after confirming the canonical install path.
@@ -160,7 +160,7 @@ If an installer regression leaves the canonical skill installed but misses one a
 Ask any installed agent:
 
 ```text
-Use the obsidian-vault skill to initialize my vault's Global Todo if it doesn't exist yet. Preserve my existing vault conventions.
+Use the obsidian-project-brain skill to initialize my vault's Global Todo if it doesn't exist yet. Preserve my existing vault conventions.
 ```
 
 The initial file should stay minimal:
@@ -180,7 +180,7 @@ The initial file should stay minimal:
 From the root of a repository:
 
 ```text
-Use the obsidian-vault skill to initialize this project in my vault.
+Use the obsidian-project-brain skill to initialize this project in my vault.
 Inspect the repository first and preserve existing vault conventions.
 Create only the minimum project index, Todo, Architecture, and Codebase Map.
 Add the project to Global Todo with priority P2 unless I already specified a priority.
@@ -249,12 +249,12 @@ Don't save the report to the vault.
 
 # Publish this as a GitHub repository
 
-The recommended repository name is **`obsidian-vault`** because the Agent Skills specification requires the skill's `name` to match its directory name.
+The recommended repository name is **`obsidian-project-brain`** because the Agent Skills specification requires the skill's `name` to match its directory name.
 
 The repository can contain the skill directly at the root:
 
 ```text
-obsidian-vault/
+obsidian-project-brain/
 ├── SKILL.md
 ├── README.md
 ├── LICENSE
@@ -270,7 +270,7 @@ From this folder:
 git init
 git branch -M main
 git add .
-git commit -m "Initial obsidian-vault agent skill"
+git commit -m "Initial obsidian-project-brain agent skill"
 ```
 
 ### With GitHub CLI
@@ -278,7 +278,7 @@ git commit -m "Initial obsidian-vault agent skill"
 If `gh` is installed and authenticated:
 
 ```bash
-gh repo create obsidian-vault \
+gh repo create obsidian-project-brain \
   --public \
   --source=. \
   --remote=origin \
@@ -289,17 +289,17 @@ Use `--private` instead if you do not want the skill public yet.
 
 ### Without GitHub CLI
 
-Create an empty `obsidian-vault` repository on GitHub, then:
+Create an empty `obsidian-project-brain` repository on GitHub, then:
 
 ```bash
-git remote add origin git@github.com:YOUR_GITHUB_USERNAME/obsidian-vault.git
+git remote add origin git@github.com:YOUR_GITHUB_USERNAME/obsidian-project-brain.git
 git push -u origin main
 ```
 
 After it is pushed, test discovery before installing:
 
 ```bash
-npx skills@latest add YOUR_GITHUB_USERNAME/obsidian-vault --list
+npx skills@latest add YOUR_GITHUB_USERNAME/obsidian-project-brain --list
 ```
 
 Then install it globally using the command in the Setup section.
