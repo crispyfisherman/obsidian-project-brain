@@ -128,7 +128,7 @@ The skill checks `OBSIDIAN_VAULT` first, then the config file.
 Once this repository is on GitHub, install the same skill into Claude Code, Codex, and Gemini CLI using the open `skills` CLI:
 
 ```bash
-npx skills@latest add YOUR_GITHUB_USERNAME/obsidian-project-brain \
+npx skills@latest add crispyfisherman/obsidian-project-brain \
   --global \
   --agent claude-code \
   --agent codex \
