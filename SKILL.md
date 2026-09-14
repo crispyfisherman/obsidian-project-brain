@@ -1,59 +1,84 @@
 ---
 name: obsidian-project-brain
-description: Maintain and retrieve a human-and-agent shared software-development knowledge base in an Obsidian vault. Use for project architecture, codebase maps, technical decisions, dev logs, project todos, priorities, blockers, work progress, codebase relearning, and on-demand daily or weekly reports. Use after significant development work when durable project knowledge or task state changed. This skill does not replace coding, planning, testing, debugging, or review workflows; the repository remains the source of truth for code behavior.
+description: Maintain a human-and-agent shared project cockpit in Obsidian for cross-project priorities, per-project todos, development logs, progress history, and personal learning notes. Use when the user asks to initialize or update project tracking, record a development session, review current or remaining work, recall recent progress, or generate an on-demand project or weekly report. The Git repository remains authoritative for engineering knowledge such as CONTEXT.md, ADRs, specs, architecture, code, and tests.
 license: MIT
 compatibility: Requires filesystem read/write access to an Obsidian or Markdown vault. Git and ripgrep are optional but recommended.
 ---
 
-# Obsidian Development Vault
+# Obsidian Project Brain
 
-Use an Obsidian vault as a durable, human-readable workspace jointly maintained by the user and coding agents.
+Use an Obsidian vault as a **human + agent shared development cockpit**.
 
-This skill manages **project knowledge and work state**, not the software-development methodology itself. Other skills may decide how to plan, implement, test, debug, or review code.
+This skill tracks what the user is working on, what remains, what happened over time, and useful personal/project notes. It does **not** duplicate the repository's canonical engineering documentation.
+
+## Ownership model
+
+```text
+Obsidian Project Brain                 Git repository
+----------------------                 --------------
+Global project dashboard               Source code
+Project priority/status                CONTEXT.md / CONTEXT-MAP.md
+Per-project Todo.md                    ADRs / architecture docs
+Development journal                    Specs / plans / tickets
+Progress history                       Tests
+Personal learning / mental notes       Canonical engineering decisions
+Pointers to repo artifacts             Implementation truth
+```
+
+When durable engineering knowledge already exists in the repository, point to it from Obsidian instead of copying it.
+
+Examples:
+
+- Architectural decisions belong in repo ADRs. A dev log may record that `docs/adr/0008-worker-architecture.md` was created or changed.
+- Domain vocabulary belongs in `CONTEXT.md` or `CONTEXT-MAP.md` when the repo uses those files.
+- Specs, plans, tickets, and design docs created by other engineering skills stay in the repository.
+- Obsidian records progress, current work, personal context, and where the canonical repo knowledge lives.
 
 ## Core model
 
-Treat the vault as a shared development operating layer:
-
 ```text
-Global Todo.md                  What projects are active, paused, or completed?
+Global Todo.md
 Projects/<Project>/
-  <Project> Index.md            Project entry point + project priority
-  Todo.md                       What work remains? What is blocked? What is done?
-  Architecture.md               How does the system work now?
-  Codebase Map.md               Where does the implementation live?
-  Decisions/                    Why did important technical choices change?
-  Dev Logs/                     What happened over time?
-  Tasks/                        Optional deep context for complex tasks only
+  <Project> Index.md
+  Todo.md
+  Dev Logs/
+  Notes/                optional personal/project learning notes
+  Tasks/                optional deep context for complex tasks
 ```
 
 The user and agents may both edit these files directly.
 
 ## Core principles
 
-1. **The repository is the source of truth for code behavior.**
-   Vault notes explain architecture, intent, history, decisions, progress, and useful code landmarks. If notes disagree with the repository, verify against the repository before correcting durable technical knowledge.
+1. **The Git repository is authoritative for engineering truth.**
+   Code, tests, `CONTEXT.md`, ADRs, architecture docs, specs, and repo-local plans outrank Obsidian notes when they disagree.
 
-2. **The vault is co-owned by human and agents.**
-   Preserve human wording and intent. Do not rewrite, delete, reprioritize, or close work merely to make the notes look cleaner.
+2. **Obsidian is the user's development cockpit, not a second engineering source of truth.**
+   Track projects, priorities, todos, progress, journal history, personal learning, and pointers to canonical repo artifacts.
 
-3. **Separate current truth from history.**
-   `Architecture.md`, `Codebase Map.md`, and `Todo.md` describe current state. Decision notes and dev logs preserve how and why that state evolved.
+3. **The vault is co-owned by human and agents.**
+   Preserve human wording and intent. Do not rewrite, delete, reprioritize, or close work merely to make notes cleaner.
 
-4. **Retrieve narrowly.**
-   Never load the whole vault. Start from `Global Todo.md` or the project index, then read only the notes relevant to the request.
+4. **Repository binding must be explicit.**
+   A repo-backed project should identify its repository. Never write a development log until the current checkout resolves to exactly one Obsidian project.
 
-5. **Prefer durable knowledge over transcripts.**
-   Preserve architecture changes, meaningful decisions, important debugging discoveries, blockers, and significant progress. Do not record every command or conversational turn.
+5. **Reports are views, not source data.**
+   Do not automatically create daily, weekly, todo, or status reports. Generate them only when the user asks, and keep them in chat unless the user explicitly asks to save them.
 
-6. **Reports are views, not source data.**
-   Do not automatically create daily, weekly, todo, or status reports. Generate them in chat only when the user asks, unless the user explicitly asks to save a report.
+6. **Logging is deliberate.**
+   Do not automatically log every discussion, skill invocation, command, or coding step. Record a session when the user asks to log, update, or preserve the work, or explicitly invokes this skill for that purpose.
 
-7. **Preserve existing vault conventions.**
-   Inspect existing folders, filenames, properties/frontmatter, tags, and wikilink conventions before introducing defaults from this skill.
+7. **Prefer concise durable history over transcripts.**
+   Dev logs capture meaningful work, outcomes, blockers, repo artifacts created or changed, and next steps. Never save raw chat transcripts by default.
 
-8. **Never store secrets.**
-   Do not write credentials, API keys, tokens, passwords, private keys, or similar sensitive authentication material into the vault.
+8. **Retrieve narrowly.**
+   Start from the project index or `Global Todo.md`, then read only the files needed for the user's question.
+
+9. **Preserve existing vault conventions.**
+   Follow existing folder, filename, frontmatter, tag, and wikilink conventions when present.
+
+10. **Never store secrets.**
+    Do not write credentials, API keys, tokens, passwords, private keys, or similar authentication material into the vault.
 
 ## Priority model
 
@@ -71,11 +96,11 @@ Priority is shared mutable state. Humans and agents may change it.
 Agents may change priority when:
 
 - the user explicitly requests it;
-- work becomes an objective blocker for other active work;
+- a task becomes an objective blocker for other active work;
 - a production, reliability, security, or data-loss issue makes urgency clear;
-- the implementation dependency order makes a priority adjustment unambiguous.
+- implementation dependency order makes the adjustment unambiguous.
 
-Do not silently make strategic reprioritization based only on preference. When a major change is only a recommendation, present it as a recommendation rather than changing the vault.
+Do not silently make strategic reprioritization based only on preference. If a change is only a recommendation, present it as a recommendation instead of mutating the vault.
 
 ## Resolve the vault
 
@@ -85,23 +110,69 @@ Resolve the vault location in this order:
 2. `~/.config/agent-obsidian/vault-path` containing one path.
 3. Ask the user for the vault path if neither exists.
 
-Validate the path before writing. Prefer an Obsidian vault containing `.obsidian/`, but allow a normal Markdown directory when the user intentionally uses one.
+Validate the path before writing. Prefer an Obsidian vault containing `.obsidian/`, but allow a normal Markdown directory when intentionally used as the vault.
 
-Do not recursively scan the user's entire home directory looking for a vault.
+Do not recursively scan the entire home directory looking for a vault.
 
-## Resolve the current project
+## Resolve repository identity
 
-Inside a Git repository, identify the root with:
+Inside a Git repository, determine the checkout root:
 
 ```bash
 git rev-parse --show-toplevel
 ```
 
-Use the repository root basename as the default project name, but prefer an existing matching project index.
+Then inspect the primary remote when available:
 
-When not inside a repository, resolve the project from the user's request or from an existing project index.
+```bash
+git remote get-url origin
+```
 
-If multiple projects genuinely match, avoid writing until the target project is clear.
+Normalize common SSH and HTTPS forms to a stable identity. For example:
+
+```text
+git@github.com:owner/repo.git
+https://github.com/owner/repo.git
+https://github.com/owner/repo
+```
+
+all represent:
+
+```text
+github.com/owner/repo
+```
+
+Prefer the normalized remote identity over a local filesystem path because local paths can change across machines.
+
+If there is no remote, use repository root basename plus the local Git root as a fallback mapping. If that could match multiple projects, do not write until the target is clear.
+
+## Project binding
+
+Every repo-backed project index should include repository identity.
+
+Recommended frontmatter:
+
+```yaml
+---
+type: project
+project: FilmEnlarger
+status: active
+priority: P1
+repository: github.com/example/FilmEnlarger
+updated: YYYY-MM-DD
+---
+```
+
+`repository` is the canonical binding key.
+
+Before writing a dev log from a repository session:
+
+1. Resolve the current normalized repository identity.
+2. Find the project index with the same `repository` value.
+3. If exactly one project matches, use it.
+4. If none matches and the user asked to initialize the project, create the project mapping.
+5. If none matches during an ordinary log/update request, surface that the repo has not been bound yet.
+6. If multiple projects match, do not write until the ambiguity is resolved.
 
 ## Default vault layout
 
@@ -113,22 +184,18 @@ Projects/
   <Project>/
     <Project> Index.md
     Todo.md
-    Architecture.md
-    Codebase Map.md
-    Decisions/
     Dev Logs/
-    Tasks/
+    Notes/
+    Tasks/              optional
 ```
 
 Use `references/note-templates.md` when creating new files and no established template exists.
 
 ## Global Todo
 
-`Global Todo.md` is the human-friendly project dashboard.
+`Global Todo.md` is the cross-project dashboard. It contains **projects only**, not each project's task list.
 
-It must contain **projects only**, not the task list for every project.
-
-Recommended sections:
+Recommended structure:
 
 ```markdown
 # Global Todo
@@ -144,24 +211,21 @@ Recommended sections:
 - [[Projects/Project D/Project D Index|Project D]]
 ```
 
-### Global Todo rules
+Rules:
 
 - Keep it small and quickly scannable.
-- Project status belongs to one of: `active`, `paused`, `completed`.
-- Active/paused project entries should display their current priority.
-- Do not duplicate project tasks here.
-- When a project is created, ensure it is represented here.
-- When a project status or priority changes, synchronize this dashboard with the project index.
-
-The **project index property is canonical** for project status and priority. `Global Todo.md` is the editable dashboard/mirror.
-
-Because humans may edit the dashboard directly, if an agent detects a mismatch caused by an apparent human edit, preserve the human change and synchronize the project index when intent is clear. If the source of the conflict cannot be determined and it materially changes priorities, surface the mismatch instead of silently discarding either value.
+- Project status is one of `active`, `paused`, `completed`.
+- Active and paused entries display current priority.
+- Never duplicate per-project tasks here.
+- When project status or priority changes, synchronize the dashboard and project index.
+- Project index frontmatter is the structured canonical metadata; `Global Todo.md` is the human-friendly editable dashboard.
+- If a human edit creates a mismatch and intent is clear, preserve the human edit and reconcile the other surface. If intent is ambiguous and materially changes priority/status, surface the mismatch instead of guessing.
 
 ## Project Index
 
-`<Project> Index.md` is the project entry point and canonical source for project-level status and priority.
+`<Project> Index.md` is the project entry point.
 
-Recommended properties:
+Recommended frontmatter:
 
 ```yaml
 ---
@@ -169,22 +233,24 @@ type: project
 project: <Project>
 status: active
 priority: P1
+repository: github.com/owner/repo
 updated: YYYY-MM-DD
 ---
 ```
 
-Keep the body compact and link prominently to:
+Keep the body compact. Make these easy to find:
 
 - `[[Todo]]`
-- `[[Architecture]]`
-- `[[Codebase Map]]`
-- important decisions or knowledge when useful
+- recent dev logs
+- optional `[[Notes/...]]`
+- repository identity or location
+- pointers to canonical repo knowledge such as `CONTEXT.md`, `CONTEXT-MAP.md`, `docs/adr/`, specs, or plans when they exist
 
-`Todo` should be easy for a human to find from the project index.
+Do not copy repository engineering docs into the project index.
 
 ## Project Todo
 
-Every active project should have exactly one obvious `Todo.md` as the canonical task/status surface.
+Every active project should have exactly one obvious `Todo.md` as the canonical human-facing task/status surface.
 
 Recommended structure:
 
@@ -210,31 +276,23 @@ Recommended structure:
 - [x] [P1] Meaningful completed task — YYYY-MM-DD
 ```
 
-### Todo rules
+Todo rules:
 
-- `Todo.md` is canonical for normal task **status and priority**.
+- `Todo.md` is canonical for normal task status and priority.
 - Humans and agents may both edit it.
 - Preserve user-authored task wording unless changing it is necessary for correctness.
 - Agents may add discovered subtasks, blockers, implementation context, and objectively completed subtasks.
 - Agents may move a task to `In Progress` when actually beginning it.
 - Do not mark major work complete merely because code was written. Verify acceptance criteria, tests, repository state, or explicit user confirmation.
-- Do not delete tasks merely because they appear stale. Move or close them only when the state is supported.
+- Do not delete tasks merely because they appear stale.
 - Do not invent deadlines.
-- Do not automatically sort/rewrite the whole file after a small change.
-- Keep `Completed` useful; archive old completion detail into dev logs when the section becomes noisy.
+- Do not automatically sort or rewrite the whole file after a small change.
 
-### Simple vs complex tasks
+### Complex task notes
 
-Most tasks should remain simple Markdown checkboxes in `Todo.md`.
+Most tasks should remain checkboxes in `Todo.md`.
 
-Create `Tasks/<Task Title>.md` only when a task needs substantial context such as:
-
-- acceptance criteria;
-- investigation notes;
-- design decisions;
-- many subtasks;
-- significant blockers;
-- detailed code references.
+Create `Tasks/<Task Title>.md` only when a task needs substantial context such as acceptance criteria, investigation notes, many subtasks, major blockers, or detailed repo references.
 
 Link it from `Todo.md`:
 
@@ -242,77 +300,11 @@ Link it from `Todo.md`:
 - [ ] [P1] [[Tasks/Automatic Calibration]]
 ```
 
-For a linked complex task, keep the displayed priority/status in `Todo.md` synchronized with the task note properties. `Todo.md` remains the primary human-facing task-state surface.
-
-If a human edits one surface and the two disagree, preserve the apparent human change and synchronize the other when intent is clear. Do not silently overwrite an ambiguous conflict.
-
-## Architecture
-
-`Architecture.md` describes the **current system architecture**.
-
-Update it when durable system-level design changes, including:
-
-- component boundaries;
-- data flow;
-- deployment topology;
-- storage or database responsibilities;
-- queues/workers/background processing;
-- major dependencies;
-- important constraints and tradeoffs.
-
-Include links to relevant decisions and useful code references.
-
-Do not create architecture churn for trivial implementation details.
-
-## Codebase Map
-
-`Codebase Map.md` helps humans and agents quickly relearn and navigate the repository.
-
-Record only useful landmarks:
-
-- entry points;
-- major modules and responsibilities;
-- important files/directories;
-- key types/functions/symbols;
-- relationships between subsystems;
-- non-obvious implementation locations.
-
-Example:
-
-```text
-src/scanner/controller.rs — scan lifecycle orchestration
-src/scanner/transport.rs — film transport control
-ScanController — main scan coordinator
-FilmTransport — transport abstraction
-```
-
-Do not document every file. The goal is a fast mental map into the real codebase.
-
-## Decision Notes
-
-Create a decision note when a meaningful technical choice changes or constrains the system.
-
-Default naming:
-
-```text
-Decisions/YYYY-MM-DD <Decision Title>.md
-```
-
-Capture:
-
-- context;
-- decision;
-- why;
-- alternatives considered when relevant;
-- consequences/tradeoffs;
-- affected architecture/code;
-- related notes.
-
-Decision notes are historical. Never rewrite an old decision to make history look cleaner. If it is reversed, create a new decision note and link the old and new decisions.
+Keep the displayed task status/priority and linked task metadata synchronized. If a human edit causes a conflict and intent is clear, preserve the human change. Do not silently overwrite an ambiguous conflict.
 
 ## Dev Logs
 
-Dev logs preserve meaningful chronological work and are distinct from reports.
+Dev logs preserve meaningful chronological work.
 
 Default naming:
 
@@ -320,82 +312,88 @@ Default naming:
 Dev Logs/YYYY-MM-DD.md
 ```
 
-Record useful development history such as:
+A dev log should record useful history such as:
 
 - what was worked on;
-- significant changes;
-- important discoveries;
-- technical decisions;
+- meaningful progress;
 - blockers/problems;
-- meaningful validation/tests;
+- validation that matters;
+- important discoveries;
+- repo artifacts created or changed, such as ADRs, `CONTEXT.md`, specs, PRs, or commits;
 - next steps when known.
 
-A dev log is not a transcript and should not contain every command.
+A dev log is not a transcript and should not duplicate the contents of canonical repository docs.
 
-When multiple significant work sessions happen on one day, update the same daily note unless the user's existing convention says otherwise.
+For example:
 
-## Retrieve project knowledge
+```markdown
+## Repository Knowledge
 
-When asked about architecture, history, work status, unfinished work, a past decision, or how to relearn a project:
-
-1. Identify the project.
-2. Read its project index.
-3. Read only the smallest relevant current-state file(s).
-4. Search titles/content for the specific topic.
-5. Follow relevant wikilinks/backlinks.
-6. For questions about current code behavior, inspect the repository before treating vault notes as authoritative.
-
-Prefer fast search tools such as `rg` when available:
-
-```bash
-rg -n -i "auth|session|jwt" "$OBSIDIAN_VAULT/Projects/<Project>"
-rg -n -F "[[Backend Architecture]]" "$OBSIDIAN_VAULT/Projects/<Project>"
+- New ADR: `docs/adr/0008-separate-transport-state.md`
+- Updated domain context: `CONTEXT.md`
 ```
 
-## Update after development work
+When multiple significant sessions happen on one day, update the same daily note unless the user's existing convention says otherwise.
 
-After **significant** implementation, debugging, refactoring, or architectural work, preserve durable changes when this skill is active or relevant.
+## Personal and learning notes
 
-Use this order:
+Use `Notes/` for information that helps the user personally understand or remember a project but does not belong as canonical repository documentation.
 
-1. Verify what actually changed from repository state and tests.
-2. Update today's dev log with a concise account of meaningful work.
-3. Update `Todo.md` only where task progress, blockers, or newly discovered work actually changed.
-4. If current architecture changed, update `Architecture.md`.
-5. If codebase landmarks changed materially, update `Codebase Map.md`.
-6. If a meaningful technical decision was made, create a decision note.
-7. Update the project index only when project metadata or navigation changed.
-8. Synchronize project priority/status with `Global Todo.md` when those values changed.
+Examples:
 
-Do not generate a daily/weekly report as part of this workflow.
+- a mental model that helps relearn a subsystem;
+- personal reminders about confusing code paths;
+- learning notes;
+- useful links between concepts;
+- pointers to important repo files.
 
-## Todo and progress queries
+Do not use personal notes to create a competing copy of `CONTEXT.md`, ADRs, architecture docs, or specs.
 
-When the user asks questions such as:
+## Retrieve project state
+
+For questions such as:
 
 - "What's the todo list for FilmEnlarger?"
 - "What's left on this project?"
 - "What's blocked?"
-- "What should I work on next?"
-- "What are my highest-priority tasks?"
+- "What did I work on recently?"
+- "What should I pick up next?"
 
-Read `Todo.md` first. Read dev logs only when they are needed to clarify ambiguous progress.
-
-For "what should I work on next?", consider task priority, blockers, current in-progress work, and explicit dependency relationships. Do not invent a strategic priority that is absent from the vault; label additional suggestions as recommendations.
+1. Resolve the target project.
+2. Read its project index.
+3. Read `Todo.md` first for current work state.
+4. Read relevant dev logs only when historical progress matters.
+5. Follow repo pointers when the question depends on canonical engineering knowledge.
+6. Inspect the repository for current code behavior.
 
 ## Cross-project queries
 
-When the user asks:
+For questions such as:
 
 - "What projects am I working on?"
 - "What's my highest-priority project?"
-- "What are the top tasks across my active projects?"
+- "What are my top tasks across active projects?"
 
 Start from `Global Todo.md`.
 
 For project-only questions, do not read every project's `Todo.md`.
 
-For cross-project task questions, identify the relevant active/high-priority projects from `Global Todo.md`, then read only their `Todo.md` files as needed.
+For cross-project task questions, identify relevant active/high-priority projects first, then read only their `Todo.md` files as needed.
+
+## Deliberate logging workflow
+
+When the user asks to log, update, or preserve a development session:
+
+1. Resolve the current repository and its bound Obsidian project.
+2. Inspect repository state and recent work enough to avoid inventing progress.
+3. Update today's dev log with a concise summary.
+4. Update `Todo.md` only where task progress, blockers, newly discovered work, or priority actually changed.
+5. Reference repo-local ADRs, `CONTEXT.md`, specs, plans, PRs, or commits that were created or changed.
+6. Do not duplicate those repo documents into Obsidian.
+7. Update the project index only when metadata, repo pointers, or navigation changed.
+8. Synchronize project priority/status with `Global Todo.md` when those values changed.
+
+Do not generate a daily or weekly report as part of logging.
 
 ## On-demand reports
 
@@ -406,66 +404,65 @@ Examples:
 - daily development summary;
 - weekly engineering report;
 - project progress report;
-- architecture-change summary;
-- blockers report.
+- blockers report;
+- recent-change summary.
 
 For a date-range report:
 
 1. Determine the requested date range.
 2. Read dev logs within that range.
 3. Read the current `Todo.md` for present state.
-4. Read decision notes from that range when relevant.
-5. Inspect architecture/codebase notes if the report asks about system changes.
-6. Verify important completion claims against the repository when practical.
-7. Answer in chat unless the user explicitly asks to save the report.
+4. Follow referenced repo artifacts when needed to accurately describe engineering changes.
+5. Verify important completion claims against the repository when practical.
+6. Answer in chat unless the user explicitly asks to save the report.
 
-A useful engineering report may include:
+A useful report may include:
 
 - Completed
 - In Progress
-- Decisions / Architecture Changes
+- Repository Knowledge / Decisions
 - Problems / Blockers
 - Remaining Work
 - Recommended Next Focus
 
 Do not treat a task as completed merely because a dev log mentioned it.
 
-## Code review and relearning workflow
+## Relearning a project
 
-When helping the user review or relearn a codebase:
+When the user wants to relearn an old codebase:
 
-1. Read the project index.
-2. Read `Architecture.md` and relevant parts of `Codebase Map.md`.
-3. Read `Todo.md` if current work state matters.
-4. Read relevant decision notes that explain unusual design choices.
-5. Inspect the corresponding repository files and symbols.
-6. Explain the current code using vault history as context, not as a substitute for code inspection.
-7. Update stale durable notes only after verifying the repository.
+1. Read the project index and `Todo.md`.
+2. Read recent dev logs for historical orientation.
+3. Read relevant personal notes if they exist.
+4. Follow pointers into repo `CONTEXT.md`, ADRs, specs, or other canonical docs.
+5. Inspect the actual repository files and symbols.
+6. Explain the current code using the vault as progress/history context, not as a substitute for repository inspection.
 
 ## Project initialization
 
-When asked to initialize a project in the vault:
+When asked to initialize a repo-backed project:
 
-1. Inspect the repository enough to understand its actual structure.
+1. Resolve the repository root and normalized remote identity.
 2. Inspect existing vault conventions.
 3. Create the project folder only if it does not exist.
-4. Create the minimal files:
+4. Create the minimum files:
    - `<Project> Index.md`
    - `Todo.md`
-   - `Architecture.md`
-   - `Codebase Map.md`
 5. Add the project to `Global Todo.md` with status and priority.
-6. Do not fabricate a detailed task backlog. Seed todos only from explicit user input, repository evidence, or clearly existing work.
-7. Create `Decisions/`, `Dev Logs/`, or `Tasks/` as needed rather than filling them with empty placeholder notes.
+6. Add repo pointers such as `CONTEXT.md`, `CONTEXT-MAP.md`, `docs/adr/`, specs, or plans only when they actually exist.
+7. Do not fabricate a task backlog.
+8. Create `Dev Logs/`, `Notes/`, or `Tasks/` only when needed rather than filling them with placeholders.
 
 ## Boundaries
 
 This skill does **not**:
 
 - replace Git history;
-- replace the repository as source of truth;
+- replace the repository as source of engineering truth;
+- duplicate repo `CONTEXT.md`, ADRs, architecture docs, specs, or plans;
 - replace a team issue tracker or project-management system;
 - automatically synchronize to Notion or another service;
+- automatically log every discussion or skill invocation;
 - automatically generate reports;
 - replace coding/planning/TDD/debugging/review skills;
 - require semantic/vector indexing;
