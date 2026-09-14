@@ -1,20 +1,32 @@
 # obsidian-project-brain
 
-A portable Agent Skill for maintaining an Obsidian vault as a **human + coding-agent shared development workspace**.
+A portable Agent Skill that turns an Obsidian vault into a **human + coding-agent project cockpit**.
 
-It keeps the parts of software work that are useful beyond the current chat/session:
+It keeps a clean ownership boundary:
 
-- active projects and project priority;
-- project todos, task priority, blockers, and progress;
-- current architecture;
-- codebase maps for fast relearning;
-- technical decisions and their reasoning;
-- concise development logs;
-- on-demand daily/weekly/project reports.
+```text
+Obsidian                              Git repository
+--------                              --------------
+Project dashboard                     Source code
+Project/task priority                 CONTEXT.md / CONTEXT-MAP.md
+Todo lists                            ADRs / architecture docs
+Development journal                   Specs / plans / tickets
+Progress history                      Tests
+Personal learning notes               Engineering source of truth
+```
 
-It is deliberately **not** a coding methodology and does not replace planning, TDD, debugging, review, Git history, or the repository itself.
+The goal is not to replace repo-local engineering documentation. The goal is to give you and your agents a shared place to answer:
 
-## Knowledge model
+- What projects am I working on?
+- What is the priority of each project?
+- What's left to do in this repo?
+- What did I work on this week?
+- What's blocked?
+- What changed recently?
+- Which repo ADR/spec/context file explains that change?
+- What should I pick up next?
+
+## Vault model
 
 ```text
 Obsidian Vault/
@@ -23,29 +35,74 @@ Obsidian Vault/
     └── <Project>/
         ├── <Project> Index.md
         ├── Todo.md
-        ├── Architecture.md
-        ├── Codebase Map.md
-        ├── Decisions/
         ├── Dev Logs/
-        └── Tasks/
+        ├── Notes/          # optional personal/project learning
+        └── Tasks/          # optional complex task notes
 ```
 
-### Why this structure?
+### What each file owns
 
-- `Global Todo.md` answers **what projects am I working on?**
-- `<Project> Index.md` is the project entry point and owns project status/priority.
-- `Todo.md` is the canonical human-friendly task state for that project.
-- `Architecture.md` explains how the system works **now**.
-- `Codebase Map.md` makes old or unfamiliar codebases fast to navigate again.
-- `Decisions/` explains **why** important technical choices were made.
-- `Dev Logs/` records meaningful chronological development history.
-- `Tasks/` is only for tasks complex enough to need their own note.
+- `Global Todo.md` — active/paused/completed projects and project priority.
+- `<Project> Index.md` — project metadata, repository binding, navigation, and pointers to canonical repo docs.
+- `Todo.md` — task state, task priority, blockers, and completion state.
+- `Dev Logs/` — concise chronological history of meaningful development work.
+- `Notes/` — optional personal mental models, learnings, and reminders that should not become canonical repo documentation.
+- `Tasks/` — optional deep context for complex tasks only.
 
-Humans and agents can edit the same files.
+## Repository-first engineering knowledge
+
+This skill assumes your engineering workflow may already maintain files such as:
+
+```text
+CONTEXT.md
+CONTEXT-MAP.md
+docs/adr/
+specs/
+plans/
+```
+
+Those stay authoritative in Git.
+
+A dev log should reference them:
+
+```markdown
+## Repository Knowledge
+
+- New ADR: `docs/adr/0008-separate-transport-state.md`
+- Updated domain context: `CONTEXT.md`
+```
+
+rather than copying their contents into Obsidian.
+
+This works well with engineering skill sets that already produce repo-local context, ADRs, specs, plans, tests, and review artifacts.
+
+## Repository binding
+
+Each repo-backed project stores a normalized repository identity in frontmatter:
+
+```yaml
+---
+type: project
+project: FilmEnlarger
+status: active
+priority: P1
+repository: github.com/example/FilmEnlarger
+updated: 2026-09-14
+---
+```
+
+The skill resolves the current Git checkout using:
+
+```bash
+git rev-parse --show-toplevel
+git remote get-url origin
+```
+
+and normalizes SSH/HTTPS remotes to one stable identity. This keeps dev logs from one repo attached to the correct Obsidian project.
 
 ## Priority model
 
-Both projects and tasks use:
+Projects and tasks use the same four levels:
 
 ```text
 P0 = Critical
@@ -54,9 +111,9 @@ P2 = Normal
 P3 = Low
 ```
 
-Project priority is stored in the project index frontmatter and mirrored in `Global Todo.md`.
+Project priority appears in the project index and is mirrored in `Global Todo.md`.
 
-Task priority is normally stored inline in `Todo.md`:
+Task priority stays human-editable directly in `Todo.md`:
 
 ```markdown
 - [ ] [P0] Fix film transport jam
@@ -65,11 +122,13 @@ Task priority is normally stored inline in `Todo.md`:
 - [ ] [P3] Explore automatic dust detection
 ```
 
+Humans and agents may both edit these files. Agents are instructed not to casually override human priority or wording.
+
 ## Reports are on demand
 
-The skill does **not** create automatic daily or weekly reports.
+The skill does **not** automatically create daily or weekly reports.
 
-Ask for them when useful:
+Ask when useful:
 
 ```text
 What's the todo list for FilmEnlarger?
@@ -80,38 +139,56 @@ What are my highest-priority tasks across active projects?
 ```
 
 ```text
-Give me the weekly engineering report for FilmEnlarger.
+Give me the weekly engineering report for FilmEnlarger. Don't save it.
 ```
 
-The report is generated from the underlying todo/dev-log/decision data and stays in chat unless you explicitly ask to save it.
+Reports are generated from the underlying todo/dev-log state and stay in chat unless you explicitly ask to save them.
+
+## Logging is deliberate
+
+The skill also does **not** automatically record every coding discussion or invocation of another skill.
+
+After a meaningful work unit, ask:
+
+```text
+Use obsidian-project-brain to log this session.
+```
+
+or:
+
+```text
+Update the project brain with what we accomplished. Update Todo and today's dev log. Reference any repo ADRs/context/specs we created; don't duplicate them into Obsidian.
+```
+
+This keeps the vault concise and human-owned.
 
 ---
 
 # Setup
 
-## 1. Create or choose an Obsidian vault
+## 1. Choose your Obsidian vault
 
-Any normal local Obsidian vault works.
+Any local Obsidian vault or Markdown directory works.
 
-You do not need to create the project structure manually; the skill can initialize it when you ask.
+You do not need to create the project structure manually; the skill can initialize it.
 
 ## 2. Configure the vault path
 
 ### Option A — environment variable
 
-Add this to `~/.zshrc` on macOS:
+Add to `~/.zshrc` on macOS:
 
 ```bash
 export OBSIDIAN_VAULT="$HOME/Documents/Obsidian/MyVault"
 ```
 
-Then reload your shell:
+Reload:
 
 ```bash
 source ~/.zshrc
 ```
 
-### Option B — small config file
+### Option B — config file
 
 ```bash
 mkdir -p ~/.config/agent-obsidian
@@ -119,13 +196,11 @@ printf '%s\n' "$HOME/Documents/Obsidian/MyVault" \
   > ~/.config/agent-obsidian/vault-path
 ```
 
-Replace the example path with your real vault path.
-
 The skill checks `OBSIDIAN_VAULT` first, then the config file.
 
-## 3. Install this skill globally
+## 3. Install the skill
 
-Once this repository is on GitHub, install the same skill into Claude Code, Codex, and Gemini CLI using the open `skills` CLI:
+Install from this repository with the `skills` CLI:
 
 ```bash
 npx skills@latest add crispyfisherman/obsidian-project-brain \
@@ -135,9 +210,9 @@ npx skills@latest add crispyfisherman/obsidian-project-brain \
   --agent gemini-cli
 ```
 
-Choose **Symlink** when prompted. That keeps one canonical installed copy rather than independent copies per agent.
+Choose **Symlink** when prompted if you want all agents to use the same installed copy.
 
-The `skills` CLI currently recognizes these global locations:
+Typical global locations are:
 
 ```text
 Claude Code: ~/.claude/skills/obsidian-project-brain
@@ -145,7 +220,7 @@ Codex:       ~/.codex/skills/obsidian-project-brain
 Gemini CLI:  ~/.gemini/skills/obsidian-project-brain
 ```
 
-Verify after installation:
+Verify:
 
 ```bash
 ls -la ~/.claude/skills/obsidian-project-brain
@@ -153,17 +228,15 @@ ls -la ~/.codex/skills/obsidian-project-brain
 ls -la ~/.gemini/skills/obsidian-project-brain
 ```
 
-If an installer regression leaves the canonical skill installed but misses one agent-specific symlink, create only the missing symlink manually after confirming the canonical install path.
+## 4. Initialize the global dashboard
 
-## 4. Initialize your vault's global dashboard
-
-Ask any installed agent:
+Ask an installed agent:
 
 ```text
-Use the obsidian-project-brain skill to initialize my vault's Global Todo if it doesn't exist yet. Preserve my existing vault conventions.
+Use obsidian-project-brain to initialize Global Todo if it doesn't exist. Preserve my existing vault conventions.
 ```
 
-The initial file should stay minimal:
+The initial dashboard should stay minimal:
 
 ```markdown
 # Global Todo
@@ -177,21 +250,15 @@ The initial file should stay minimal:
 
 ## 5. Initialize a project
 
-From the root of a repository:
+From the root of a Git repository:
 
 ```text
-Use the obsidian-project-brain skill to initialize this project in my vault.
-Inspect the repository first and preserve existing vault conventions.
-Create only the minimum project index, Todo, Architecture, and Codebase Map.
-Add the project to Global Todo with priority P2 unless I already specified a priority.
-Do not invent a task backlog.
+Use obsidian-project-brain to initialize this repository as an active P1 project.
+Bind it to this Git remote, create the project index and Todo, and add it to Global Todo.
+Do not invent a backlog. If this repo has CONTEXT.md, ADRs, specs, or plans, link to them from the project index instead of copying them.
 ```
 
-If you want a different initial priority, say so explicitly, for example:
-
-```text
-Initialize this project in the vault as an active P1 project.
-```
+The skill creates the minimum useful project tracking surface first. `Dev Logs/`, `Notes/`, and `Tasks/` can appear later when needed.
 
 ## 6. Normal usage
 
@@ -204,21 +271,21 @@ Global Todo.md
 Projects/<Project>/Todo.md
 ```
 
-Those files are intentionally plain Markdown and easy to maintain by hand.
+These are intentionally plain Markdown and easy to maintain by hand.
 
-### Agent updates after coding
+### Log a coding session
 
 ```text
-Update the vault with the durable changes from this session.
-Update the dev log and todo state where needed.
-Only update Architecture, Codebase Map, or Decisions if something meaningful actually changed.
+Use obsidian-project-brain to log this session.
+Update Todo and today's dev log based on what actually changed.
+Reference any repo ADRs, CONTEXT files, specs, plans, PRs, or commits that matter.
 ```
 
 ### Relearn an old codebase
 
 ```text
 I haven't worked on this repository for a while.
-Use the vault and the actual repository to help me relearn the architecture, important code paths, recent decisions, and current todo list.
+Use the project brain and the actual repository to help me understand current work, recent history, and the canonical repo docs I should read.
 ```
 
 ### Project todo
@@ -241,82 +308,24 @@ What are my highest-priority tasks across active projects?
 
 ```text
 Give me a weekly engineering report for FilmEnlarger for this week.
-Include completed work, in-progress work, technical decisions, architecture changes, blockers, remaining work, and recommended next focus.
+Include completed work, in-progress work, repo knowledge/decisions referenced during the week, blockers, remaining work, and recommended next focus.
 Don't save the report to the vault.
 ```
 
 ---
 
-# Publish this as a GitHub repository
+# Design notes
 
-The recommended repository name is **`obsidian-project-brain`** because the Agent Skills specification requires the skill's `name` to match its directory name.
-
-The repository can contain the skill directly at the root:
+The ownership model is intentionally simple:
 
 ```text
-obsidian-project-brain/
-├── SKILL.md
-├── README.md
-├── LICENSE
-└── references/
-    └── note-templates.md
+Current personal work state  → Global Todo.md / Todo.md
+Chronological progress       → Dev Logs/
+Personal learning            → Notes/
+Canonical engineering truth  → Git repository
 ```
 
-## Create the local Git repository
-
-From this folder:
-
-```bash
-git init
-git branch -M main
-git add .
-git commit -m "Initial obsidian-project-brain agent skill"
-```
-
-### With GitHub CLI
-
-If `gh` is installed and authenticated:
-
-```bash
-gh repo create obsidian-project-brain \
-  --public \
-  --source=. \
-  --remote=origin \
-  --push
-```
-
-Use `--private` instead if you do not want the skill public yet.
-
-### Without GitHub CLI
-
-Create an empty `obsidian-project-brain` repository on GitHub, then:
-
-```bash
-git remote add origin git@github.com:YOUR_GITHUB_USERNAME/obsidian-project-brain.git
-git push -u origin main
-```
-
-After it is pushed, test discovery before installing:
-
-```bash
-npx skills@latest add YOUR_GITHUB_USERNAME/obsidian-project-brain --list
-```
-
-Then install it globally using the command in the Setup section.
-
----
-
-# Skill design notes
-
-The design intentionally keeps current state and history separate:
-
-```text
-Current truth      → Architecture.md / Codebase Map.md / Todo.md
-Historical reason  → Decisions/
-Chronological work → Dev Logs/
-```
-
-The repository always remains authoritative for what the code actually does.
+Obsidian is a project cockpit and journal, not a duplicate engineering knowledge base.
 
 This skill uses ordinary Markdown, YAML properties, and Obsidian wikilinks. No Obsidian community plugin, database, vector store, or semantic index is required.
 
