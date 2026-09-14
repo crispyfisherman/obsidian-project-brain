@@ -1,4 +1,4 @@
-# Obsidian Development Vault — Default Note Templates
+# Obsidian Project Brain — Default Note Templates
 
 Use these templates only when the vault does not already have established conventions.
 
@@ -32,133 +32,59 @@ type: project
 project: <Project>
 status: active
 priority: P1
+repository: github.com/owner/repo
 updated: YYYY-MM-DD
 ---
 
 # <Project>
 
 ## Current Work
-- [[Todo]]
 
-## System
-- [[Architecture]]
-- [[Codebase Map]]
+[[Todo]]
 
-## Important Decisions
-- [[Decisions/YYYY-MM-DD Decision Title]]
+## Repository
 
-## Recent Dev Logs
+- Repository: `github.com/owner/repo`
+- Domain context: `CONTEXT.md`
+- Architecture decisions: `docs/adr/`
+- Specs / plans: `specs/`
+
+## Recent Work
+
 - [[Dev Logs/YYYY-MM-DD]]
+
+## Notes
+
+- [[Notes/Useful Mental Model]]
 ```
+
+Remove repo pointers that do not actually exist. Do not copy their contents into Obsidian.
 
 ## Todo
 
 ```markdown
----
-type: todo
-project: <Project>
-updated: YYYY-MM-DD
----
-
 # <Project> Todo
 
 ## In Progress
+
 - [ ] [P1] Current task
 
 ## Next
+
 - [ ] [P2] Near-term task
 
 ## Blocked
+
 - [ ] [P1] Blocked task
   - Blocked by: reason
 
 ## Backlog
+
 - [ ] [P3] Future task
 
 ## Completed
+
 - [x] [P1] Completed task — YYYY-MM-DD
-```
-
-## Architecture
-
-```markdown
----
-type: architecture
-project: <Project>
-updated: YYYY-MM-DD
----
-
-# Architecture
-
-## Overview
-
-## Components
-
-## Data Flow
-
-## External Dependencies
-
-## Important Constraints
-
-## Current Tradeoffs
-
-## Key Code References
-
-## Related Decisions
-- [[Decisions/YYYY-MM-DD Decision Title]]
-```
-
-## Codebase Map
-
-```markdown
----
-type: codebase-map
-project: <Project>
-updated: YYYY-MM-DD
----
-
-# Codebase Map
-
-## Entry Points
-
-## Major Modules
-
-## Key Files
-
-## Key Symbols
-
-## Important Relationships
-
-## Areas That Need Relearning / Review
-```
-
-## Decision
-
-```markdown
----
-type: decision
-project: <Project>
-date: YYYY-MM-DD
-status: active
----
-
-# <Decision Title>
-
-## Context
-
-## Decision
-
-## Why
-
-## Alternatives Considered
-
-## Consequences / Tradeoffs
-
-## Affected Code
-
-## Related
-- [[Architecture]]
-- [[Codebase Map]]
 ```
 
 ## Dev Log
@@ -167,28 +93,68 @@ status: active
 ---
 type: dev-log
 project: <Project>
+repository: github.com/owner/repo
 date: YYYY-MM-DD
 ---
 
-# YYYY-MM-DD
+# YYYY-MM-DD <Project> Dev Log
+
+Project: [[<Project> Index]]
+Repository: `github.com/owner/repo`
 
 ## Worked On
 
-## Changed
+- 
 
-## Decisions / Discoveries
+## Repository Knowledge
 
-## Problems / Blockers
+- `CONTEXT.md` / ADR / spec / plan / PR / commit references when relevant
 
-## Validation
+## Progress
+
+- 
+
+## Blockers
+
+- 
 
 ## Next
 
-## Related
-- [[Todo]]
+- See [[Todo]]
 ```
 
-## Complex Task
+Keep this concise. Reference canonical repo artifacts instead of copying them.
+
+## Personal / Learning Note
+
+```markdown
+---
+type: note
+project: <Project>
+repository: github.com/owner/repo
+updated: YYYY-MM-DD
+---
+
+# Note Title
+
+Project: [[<Project> Index]]
+
+## Why I Need To Remember This
+
+
+## Mental Model / Learning
+
+
+## Repo References
+
+- `path/to/file`
+- `CONTEXT.md`
+- `docs/adr/...`
+```
+
+Do not use a personal note to duplicate canonical repository documentation.
+
+## Complex Task Note
 
 Use a separate task note only when the task needs substantial context.
 
@@ -198,27 +164,33 @@ type: task
 project: <Project>
 status: in-progress
 priority: P1
-created: YYYY-MM-DD
+repository: github.com/owner/repo
 updated: YYYY-MM-DD
 ---
 
 # <Task Title>
 
+Project: [[<Project> Index]]
+Todo: [[Todo]]
+
 ## Goal
 
+
 ## Acceptance Criteria
+
 - [ ]
 
-## Progress
+## Context
+
 
 ## Blockers
 
-## Notes
 
-## Code References
+## Repo References
 
-## Related
-- [[Todo]]
+- `path/to/file`
+- `CONTEXT.md`
+- `docs/adr/...`
 ```
 
 Mirror this task in `Todo.md`, for example:
@@ -227,4 +199,4 @@ Mirror this task in `Todo.md`, for example:
 - [ ] [P1] [[Tasks/<Task Title>]]
 ```
 
-`Todo.md` is the primary human-facing task-state surface; keep the linked task note metadata synchronized.
+`Todo.md` remains the primary human-facing task-state surface. Keep linked task metadata synchronized without silently overriding ambiguous human edits.
